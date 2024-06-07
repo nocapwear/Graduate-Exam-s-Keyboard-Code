@@ -1,0 +1,118 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+ 
+#define MAX_SIZE 100
+ 
+// 定义栈结构
+struct Stack {
+    int top;
+    char items[MAX_SIZE];
+};
+ 
+// 初始化栈
+void initialize(struct Stack *stack) {
+    stack->top = -1;
+}
+ 
+// 检查栈是否为空
+bool isEmpty(struct Stack *stack) {
+    return stack->top == -1;
+}
+ 
+// 入栈操作
+void push(struct Stack *stack, char item) {
+    if (stack->top == MAX_SIZE - 1) {
+        printf("栈已满，无法入栈\n");
+    } else {
+        stack->items[++stack->top] = item;
+    }
+}
+ 
+// 出栈操作
+char pop(struct Stack *stack) {
+    if (isEmpty(stack)) {
+        printf("栈为空，无法出栈\n");
+        return '\0'; // 表示栈为空
+    } else {
+        return stack->items[stack->top--];
+    }
+}
+ 
+// 获取栈顶元素
+char peek(struct Stack *stack) {
+    if (isEmpty(stack)) {
+        printf("栈为空\n");
+        return '\0'; // 表示栈为空
+    } else {
+        return stack->items[stack->top];
+    }
+}
+ 
+// 判断运算符优先级
+int precedence(char operator) {
+    if (operator == '+' || operator == '-') {
+        return 1;
+    } else if (operator == '*' || operator == '/') {
+        return 2;
+    }
+    return 0; // 其他情况，如括号
+}
+ 
+// 中缀表达式转后缀表达式
+void infixToPostfix(char infix[], char postfix[]) {
+    struct Stack stack;
+    initialize(&stack);
+ 
+    int i = 0;  // 用于遍历中缀表达式
+    int j = 0;  // 用于构建后缀表达式
+ 
+    while (infix[i] != '\0') {
+        char token = infix[i];
+ 
+        if ((token >= '0' && token <= '9') || (token >= 'a' && token <= 'z') || (token >= 'A' && token <= 'Z')) {
+            // 如果是操作数，直接加入后缀表达式
+            postfix[j++] = token;
+        } else if (token == '(') {
+            // 如果是左括号，入栈
+            push(&stack, token);
+        } else if (token == ')') {
+            // 如果是右括号，出栈直到遇到左括号，并加入后缀表达式
+            while (peek(&stack) != '(') {
+                postfix[j++] = pop(&stack);
+            }
+            pop(&stack); // 弹出左括号
+        } else {
+            // 如果是运算符
+            while (!isEmpty(&stack) && precedence(peek(&stack)) >= precedence(token)) {
+                // 出栈并加入后缀表达式，直到栈顶运算符优先级小于当前运算符
+                postfix[j++] = pop(&stack);
+            }
+            // 当前运算符入栈
+            push(&stack, token);
+        }
+ 
+        i++;
+    }
+ 
+    // 将栈中剩余的运算符加入后缀表达式
+    while (!isEmpty(&stack)) {
+        postfix[j++] = pop(&stack);
+    }
+ 
+    postfix[j] = '\0'; // 在后缀表达式末尾添加结束符
+}
+ 
+int main() {
+    char infix[MAX_SIZE];
+    char postfix[MAX_SIZE];
+ 
+    printf("请输入一个中缀表达式：\n");
+    fgets(infix, MAX_SIZE, stdin);
+ 
+    infixToPostfix(infix, postfix);
+ 
+    printf("后缀表达式为：%s\n", postfix);
+ 
+    return 0;
+}
